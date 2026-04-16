@@ -31,7 +31,8 @@ langchain = [
 llamaindex = ["llama-index>=0.10"]
 r2r = ["r2r>=3.0"]
 haystack = ["haystack-ai>=2.0"]
-all = ["ragharness[anthropic,openai,langchain,llamaindex,r2r,haystack]"]
+huggingface = ["datasets>=2.14"]
+all = ["ragharness[anthropic,openai,langchain,llamaindex,r2r,haystack,huggingface]"]
 dev = [
     "pytest>=8.0",
     "pytest-cov",
@@ -73,6 +74,8 @@ module = [
     "llama_index",
     "r2r",
     "haystack",
+    "datasets",
+    "datasets.*",
 ]
 ignore_missing_imports = true
 

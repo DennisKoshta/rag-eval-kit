@@ -1,43 +1,38 @@
-# ragharness example configuration
+# ragharness example: SQuAD via HuggingFace datasets
 #
-# This config runs a sweep over top_k and temperature using the raw adapter
-# with an Anthropic LLM. Replace the dataset path and model as needed.
+# Demonstrates the dotted-path field mapping for nested HF schemas.
+# SQuAD's answer is at `answers.text[0]` — a list under a dict.
+#
+# Requires: pip install ragharness[huggingface,anthropic]
 #
 # Usage:
-#   ragharness validate examples/hotpotqa_config.yaml
-#   ragharness run examples/hotpotqa_config.yaml --dry-run
-#   ragharness run examples/hotpotqa_config.yaml --no-confirm
+#   ragharness validate examples/squad_config.yaml
+#   ragharness run examples/squad_config.yaml --dry-run
+#   ragharness run examples/squad_config.yaml --no-confirm
 
 # ── Dataset ──────────────────────────────────────────────
 dataset:
-  source: jsonl
-  path: ./examples/sample_dataset.jsonl
-  limit: 1  # uncomment to evaluate only the first N questions
+  source: huggingface
+  name: rajpurkar/squad
+  split: validation
+  answer_field: "answers.text.0"   # nested dotted path
+  limit: 5
 
 # ── RAG System ───────────────────────────────────────────
 system:
   adapter: raw
   adapter_config:
-    llm_provider: anthropic                  # "openai" or "anthropic"
+    llm_provider: anthropic
     llm_model: claude-sonnet-4-20250514
 
 # ── Sweep Parameters ────────────────────────────────────
-# Each combination is evaluated against the full dataset.
-# 3 x 2 = 6 configurations below.
 sweep:
-  top_k: [3, 5, 10]
-  temperature: [0.0, 0.3]
+  top_k: [5]
 
 # ── Metrics ──────────────────────────────────────────────
-# Per-question metrics are computed for every (config, question) pair.
-# Aggregate metrics are computed once per config after all questions.
 metrics:
   - exact_match
-  # - llm_judge                             # uncomment to enable LLM-as-judge (adds cost)
-  - precision_at_k:
-      k: 5
   - latency_p50
-  - latency_p95
   - token_cost:
       pricing:
         claude-sonnet-4-20250514:
@@ -46,5 +41,5 @@ metrics:
 
 # ── Output ───────────────────────────────────────────────
 output:
-  csv: ./results/run.csv
+  csv: ./results/squad_run.csv
   charts: ./results/charts/

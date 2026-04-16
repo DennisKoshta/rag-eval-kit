@@ -31,6 +31,11 @@ class DatasetConfig(BaseModel):
     name: str | None = None  # HuggingFace dataset name
     split: str = "validation"
     limit: int | None = None
+    config_name: str | None = None
+    question_field: str = "question"
+    answer_field: str = "answer"
+    docs_field: str | None = None
+    trust_remote_code: bool = False
 
     @model_validator(mode="after")
     def _check_source_fields(self) -> DatasetConfig:

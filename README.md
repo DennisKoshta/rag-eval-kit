@@ -7,10 +7,12 @@ Pluggable RAG evaluation framework. Run any RAG system against a labeled Q/A dat
 ```bash
 pip install ragharness
 
-# With optional adapter dependencies:
-pip install ragharness[anthropic]   # Anthropic Claude
-pip install ragharness[openai]      # OpenAI
-pip install ragharness[all]         # All adapters
+# With optional dependencies:
+pip install ragharness[anthropic]     # Anthropic Claude
+pip install ragharness[openai]        # OpenAI
+pip install ragharness[langchain]     # LangChain adapter
+pip install ragharness[huggingface]   # HuggingFace datasets
+pip install ragharness[all]           # Everything
 ```
 
 For development:

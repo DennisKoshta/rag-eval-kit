@@ -1,35 +1,41 @@
-# ragharness example: LangChain adapter
+# ragharness basic example configuration
 #
-# Same sweep as basic_config.yaml, but routes through the
-# LangChain adapter (ChatOpenAI / ChatAnthropic via langchain-openai /
-# langchain-anthropic).
+# The smallest end-to-end config: local JSONL dataset + raw adapter +
+# a 3x2 sweep over top_k and temperature. Good starting point to copy.
 #
 # Usage:
-#   ragharness validate examples/langchain_config.yaml
-#   ragharness run examples/langchain_config.yaml --dry-run
-#   ragharness run examples/langchain_config.yaml --no-confirm
+#   ragharness validate examples/basic_config.yaml
+#   ragharness run examples/basic_config.yaml --dry-run
+#   ragharness run examples/basic_config.yaml --no-confirm
 
 # ── Dataset ──────────────────────────────────────────────
 dataset:
   source: jsonl
   path: ./examples/sample_dataset.jsonl
-  limit: 1
+  limit: 1  # uncomment to evaluate only the first N questions
 
 # ── RAG System ───────────────────────────────────────────
 system:
-  adapter: langchain
+  adapter: raw
   adapter_config:
     llm_provider: anthropic                  # "openai" or "anthropic"
     llm_model: claude-sonnet-4-20250514
 
 # ── Sweep Parameters ────────────────────────────────────
+# Each combination is evaluated against the full dataset.
+# 3 x 2 = 6 configurations below.
 sweep:
   top_k: [3, 5, 10]
   temperature: [0.0, 0.3]
 
 # ── Metrics ──────────────────────────────────────────────
+# Per-question metrics are computed for every (config, question) pair.
+# Aggregate metrics are computed once per config after all questions.
 metrics:
   - exact_match
+  # - llm_judge                             # uncomment to enable LLM-as-judge (adds cost)
+  - precision_at_k:
+      k: 5
   - latency_p50
   - latency_p95
   - token_cost:
@@ -40,5 +46,5 @@ metrics:
 
 # ── Output ───────────────────────────────────────────────
 output:
-  csv: ./results/langchain_run.csv
+  csv: ./results/run.csv
   charts: ./results/charts/

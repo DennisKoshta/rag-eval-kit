@@ -95,10 +95,100 @@ class EvalDataset:
 
     @classmethod
     def from_huggingface(
-        cls, name: str, split: str = "validation", limit: int | None = None
+        cls,
+        name: str,
+        *,
+        split: str = "validation",
+        config_name: str | None = None,
+        question_field: str = "question",
+        answer_field: str = "answer",
+        docs_field: str | None = None,
+        trust_remote_code: bool = False,
     ) -> EvalDataset:
-        """Load from a HuggingFace dataset. Not yet implemented."""
-        raise NotImplementedError(
-            "HuggingFace dataset loading is not yet implemented. "
-            "Use from_jsonl() or from_csv() instead."
+        """Load evaluation items from a HuggingFace dataset.
+
+        Fields are extracted with dotted-path access so nested schemas
+        (e.g. SQuAD's ``answers.text[0]``) can be mapped without custom
+        code: use ``answer_field="answers.text.0"``.
+
+        Parameters
+        ----------
+        name:
+            Dataset repo id on the Hub (e.g. ``"rajpurkar/squad"``).
+        split:
+            Dataset split to load (default ``"validation"``).
+        config_name:
+            Optional sub-config name (e.g. ``"distractor"`` for
+            ``hotpot_qa``).
+        question_field, answer_field:
+            Dotted paths to the question / answer fields.
+        docs_field:
+            Dotted path to a list-of-strings field used as
+            ``expected_docs``. Optional.
+        trust_remote_code:
+            Forwarded to ``datasets.load_dataset``. Opt-in for safety.
+        """
+        try:
+            from datasets import load_dataset
+        except ImportError:
+            raise ImportError(
+                "datasets package required. "
+                "Install with: pip install ragharness[huggingface]"
+            ) from None
+
+        ds = load_dataset(
+            name, config_name, split=split, trust_remote_code=trust_remote_code
         )
+
+        items: list[EvalItem] = []
+        for idx, row in enumerate(ds):
+            question = _dotted_get(row, question_field)
+            if question is None:
+                keys = list(row) if isinstance(row, dict) else "?"
+                raise ValueError(
+                    f"question_field {question_field!r} did not resolve on row {idx} "
+                    f"of {name}:{split}. Available keys: {keys}"
+                )
+            answer = _dotted_get(row, answer_field)
+            if answer is None:
+                raise ValueError(
+                    f"answer_field {answer_field!r} did not resolve on row {idx} "
+                    f"of {name}:{split}."
+                )
+
+            expected_docs: list[str] | None = None
+            if docs_field:
+                raw_docs = _dotted_get(row, docs_field)
+                if raw_docs is not None:
+                    expected_docs = [str(d) for d in raw_docs]
+
+            items.append(
+                EvalItem(
+                    question=str(question),
+                    expected_answer=str(answer),
+                    expected_docs=expected_docs,
+                )
+            )
+
+        return cls(items)
+
+
+def _dotted_get(obj: Any, path: str) -> Any:
+    """Traverse ``obj`` by a dotted path. Numeric segments are list indices.
+
+    Returns ``None`` if any segment is missing or the type doesn't support
+    the access (instead of raising), so callers can distinguish "field is
+    None/missing" from programming errors without a try/except dance.
+    """
+    current: Any = obj
+    for segment in path.split("."):
+        if current is None:
+            return None
+        try:
+            if segment.isdigit():
+                current = current[int(segment)]
+            else:
+                current = current[segment]
+        except (KeyError, IndexError, TypeError):
+            return None
+    return current

@@ -125,18 +125,37 @@ def run_sweep(
     """Execute the full evaluation sweep defined by *config*."""
 
     # 1. Load dataset
-    loader = {"jsonl": EvalDataset.from_jsonl, "csv": EvalDataset.from_csv}
-    load_fn = loader.get(config.dataset.source)
-    if load_fn is None:
-        raise ValueError(f"Unsupported dataset source: {config.dataset.source!r}")
-    if config.dataset.path is None:
-        raise ValueError("dataset.path is required for source={config.dataset.source!r}")
-    dataset = load_fn(config.dataset.path)
+    ds_cfg = config.dataset
+    if ds_cfg.source == "jsonl":
+        if ds_cfg.path is None:
+            raise ValueError(f"dataset.path is required for source={ds_cfg.source!r}")
+        dataset = EvalDataset.from_jsonl(ds_cfg.path)
+        source_label = ds_cfg.path
+    elif ds_cfg.source == "csv":
+        if ds_cfg.path is None:
+            raise ValueError(f"dataset.path is required for source={ds_cfg.source!r}")
+        dataset = EvalDataset.from_csv(ds_cfg.path)
+        source_label = ds_cfg.path
+    elif ds_cfg.source == "huggingface":
+        if ds_cfg.name is None:
+            raise ValueError("dataset.name is required for source='huggingface'")
+        dataset = EvalDataset.from_huggingface(
+            ds_cfg.name,
+            split=ds_cfg.split,
+            config_name=ds_cfg.config_name,
+            question_field=ds_cfg.question_field,
+            answer_field=ds_cfg.answer_field,
+            docs_field=ds_cfg.docs_field,
+            trust_remote_code=ds_cfg.trust_remote_code,
+        )
+        source_label = f"{ds_cfg.name}:{ds_cfg.split}"
+    else:
+        raise ValueError(f"Unsupported dataset source: {ds_cfg.source!r}")
 
-    if config.dataset.limit is not None:
-        dataset = EvalDataset(dataset._items[: config.dataset.limit])
+    if ds_cfg.limit is not None:
+        dataset = EvalDataset(dataset._items[: ds_cfg.limit])
 
-    logger.info("Loaded %d evaluation items from %s", len(dataset), config.dataset.path)
+    logger.info("Loaded %d evaluation items from %s", len(dataset), source_label)
 
     # 2. Expand sweep matrix
     sweep_configs = expand_sweep(config.sweep)
@@ -148,7 +167,7 @@ def run_sweep(
     click.echo(f"\n{'=' * 60}")
     click.echo("RAG Evaluation Sweep")
     click.echo(f"{'=' * 60}")
-    click.echo(f"  Dataset:        {config.dataset.path} ({n_questions} questions)")
+    click.echo(f"  Dataset:        {source_label} ({n_questions} questions)")
     click.echo(f"  Adapter:        {config.system.adapter}")
     click.echo(f"  Configurations: {n_configs}")
     click.echo(f"  Total queries:  {total_queries}")

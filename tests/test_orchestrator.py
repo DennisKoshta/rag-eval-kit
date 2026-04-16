@@ -140,6 +140,30 @@ def test_run_sweep_with_limit(tmp_path, _patch_adapter):
     assert len(result.runs[0].per_question_scores) == 3
 
 
+def test_run_sweep_hf_source(monkeypatch, _patch_adapter):
+    """HF source: no path required, dataset loaded via from_huggingface."""
+    from ragharness.dataset import EvalDataset, EvalItem
+
+    def _fake_hf_load(name, **kwargs):
+        assert name == "fake/ds"
+        return EvalDataset([
+            EvalItem(question=f"Q{i}", expected_answer="42") for i in range(3)
+        ])
+
+    monkeypatch.setattr(EvalDataset, "from_huggingface", classmethod(
+        lambda cls, name, **kwargs: _fake_hf_load(name, **kwargs)
+    ))
+
+    cfg = RagHarnessConfig(
+        dataset={"source": "huggingface", "name": "fake/ds"},
+        system={"adapter": "raw", "adapter_config": {"llm_provider": "openai"}},
+        metrics=["exact_match"],
+    )
+    result = run_sweep(cfg, no_confirm=True)
+    assert len(result.runs) == 1
+    assert len(result.runs[0].per_question_scores) == 3
+
+
 def test_run_sweep_aggregate_latency(tmp_path, _patch_adapter):
     """Latency metrics should be populated from metadata."""
     ds_path = tmp_path / "ds.jsonl"
