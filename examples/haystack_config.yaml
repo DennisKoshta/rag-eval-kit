@@ -1,0 +1,43 @@
+# ragharness example: Haystack 2.x adapter
+#
+# Builds a simple BM25 + OpenAIGenerator pipeline from the sample_docs/
+# directory on first query, caches it, then runs the sweep.  Requires
+# OPENAI_API_KEY to be set (used by the OpenAIGenerator component).
+#
+# For custom pipelines — embedding retrievers, re-rankers, agents,
+# non-standard component names — build the Pipeline yourself in Python
+# and pass it via ``pipeline=...``.  See examples/haystack_python.py.
+#
+# Usage:
+#   ragharness validate examples/haystack_config.yaml
+#   ragharness run examples/haystack_config.yaml --dry-run
+#   ragharness run examples/haystack_config.yaml --no-confirm
+
+# ── Dataset ──────────────────────────────────────────────
+dataset:
+  source: jsonl
+  path: ./examples/sample_dataset.jsonl
+  limit: 3
+
+# ── RAG System ───────────────────────────────────────────
+system:
+  adapter: haystack
+  adapter_config:
+    documents_path: ./examples/sample_docs/
+    llm_model: gpt-4o-mini
+
+# ── Sweep Parameters ────────────────────────────────────
+sweep:
+  top_k: [1, 3, 5]
+  temperature: [0.0]
+
+# ── Metrics ──────────────────────────────────────────────
+metrics:
+  - exact_match
+  - latency_p50
+  - latency_p95
+
+# ── Output ───────────────────────────────────────────────
+output:
+  csv: ./results/haystack_run.csv
+  charts: ./results/charts/

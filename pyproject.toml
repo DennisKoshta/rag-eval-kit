@@ -73,6 +73,7 @@ module = [
     "llama_index.*",
     "r2r",
     "haystack",
+    "haystack.*",
     "datasets",
 ]
 ignore_missing_imports = true

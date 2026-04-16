@@ -13,6 +13,7 @@ pip install ragharness[openai]        # OpenAI
 pip install ragharness[langchain]     # LangChain adapter
 pip install ragharness[llamaindex]    # LlamaIndex adapter
 pip install ragharness[r2r]           # SciPhi R2R server client
+pip install ragharness[haystack]      # Haystack 2.x adapter
 pip install ragharness[huggingface]   # HuggingFace datasets
 pip install ragharness[all]           # Everything
 ```
@@ -153,7 +154,7 @@ No inheritance required. Any object with a conforming `query` method works.
 | `dataset` | `source` | `jsonl`, `csv`, or `huggingface` |
 | `dataset` | `path` | Path to dataset file |
 | `dataset` | `limit` | Max questions to evaluate |
-| `system` | `adapter` | `raw`, `langchain`, `llamaindex`, or `r2r` |
+| `system` | `adapter` | `raw`, `langchain`, `llamaindex`, `r2r`, or `haystack` |
 | `system` | `adapter_config` | Adapter-specific parameters |
 | `sweep` | *(any key)* | Lists of values to sweep (Cartesian product) |
 | `metrics` | | List of metric names (strings or dicts with params) |
@@ -168,6 +169,7 @@ No inheritance required. Any object with a conforming `query` method works.
 | `langchain` | Implemented | `pip install ragharness[langchain]` |
 | `llamaindex` | Implemented | `pip install ragharness[llamaindex]` |
 | `r2r` | Implemented | `pip install ragharness[r2r]` |
+| `haystack` | Implemented | `pip install ragharness[haystack]` |
 
 ## Development
 
