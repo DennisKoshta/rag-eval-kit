@@ -16,7 +16,7 @@ pip install ragharness[all]         # All adapters
 For development:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ragharness.git
+git clone https://github.com/DennisKoshta/ragharness.git
 cd ragharness
 uv venv && uv pip install -e ".[dev,anthropic]"
 ```
