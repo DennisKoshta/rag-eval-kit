@@ -11,6 +11,7 @@ pip install ragharness
 pip install ragharness[anthropic]     # Anthropic Claude
 pip install ragharness[openai]        # OpenAI
 pip install ragharness[langchain]     # LangChain adapter
+pip install ragharness[r2r]           # SciPhi R2R server client
 pip install ragharness[huggingface]   # HuggingFace datasets
 pip install ragharness[all]           # Everything
 ```
@@ -165,7 +166,7 @@ No inheritance required. Any object with a conforming `query` method works.
 | `raw` | Implemented | `pip install ragharness[anthropic]` or `[openai]` |
 | `langchain` | Implemented | `pip install ragharness[langchain]` |
 | `llamaindex` | Stub | `pip install ragharness[llamaindex]` |
-| `r2r` | Stub | `pip install ragharness[r2r]` |
+| `r2r` | Implemented | `pip install ragharness[r2r]` |
 
 ## Development
 

@@ -66,7 +66,6 @@ warn_unused_configs = true
 module = [
     "openai",
     "anthropic",
-    "langchain",
     "langchain_core",
     "langchain_core.*",
     "langchain_openai",
@@ -75,7 +74,6 @@ module = [
     "r2r",
     "haystack",
     "datasets",
-    "datasets.*",
 ]
 ignore_missing_imports = true
 

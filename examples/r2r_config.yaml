@@ -1,0 +1,46 @@
+# ragharness example: R2R adapter
+#
+# Runs the sweep against a running R2R (SciPhi) server.  R2R performs
+# retrieval + generation server-side, so you must have already ingested
+# documents into the instance:
+#
+#   from r2r import R2RClient
+#   client = R2RClient(base_url="http://localhost:7272")
+#   client.documents.create(file_path="./my_docs.pdf")
+#
+# See https://r2r-docs.sciphi.ai for ingest and deployment instructions.
+#
+# Usage:
+#   ragharness validate examples/r2r_config.yaml
+#   ragharness run examples/r2r_config.yaml --dry-run
+#   ragharness run examples/r2r_config.yaml --no-confirm
+
+# ── Dataset ──────────────────────────────────────────────
+dataset:
+  source: jsonl
+  path: ./examples/sample_dataset.jsonl
+  limit: 3
+
+# ── RAG System ───────────────────────────────────────────
+system:
+  adapter: r2r
+  adapter_config:
+    base_url: http://localhost:7272
+    llm_model: openai/gpt-4o-mini   # LiteLLM-style, forwarded to R2R server
+    max_tokens: 1024
+
+# ── Sweep Parameters ────────────────────────────────────
+sweep:
+  top_k: [3, 5, 10]
+  temperature: [0.0, 0.3]
+
+# ── Metrics ──────────────────────────────────────────────
+metrics:
+  - exact_match
+  - latency_p50
+  - latency_p95
+
+# ── Output ───────────────────────────────────────────────
+output:
+  csv: ./results/r2r_run.csv
+  charts: ./results/charts/
