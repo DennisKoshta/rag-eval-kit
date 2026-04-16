@@ -19,8 +19,7 @@ def _mock_response(answer: str = "Paris", docs: list[str] | None = None) -> Simp
     return SimpleNamespace(
         response=answer,
         source_nodes=[
-            SimpleNamespace(node=SimpleNamespace(get_content=lambda t=t: t))
-            for t in docs
+            SimpleNamespace(node=SimpleNamespace(get_content=lambda t=t: t)) for t in docs
         ],
     )
 
@@ -146,9 +145,7 @@ def test_missing_source_raises():
 
 
 def test_sweep_params_cast_types():
-    adapter = LlamaIndexRAGSystem(
-        query_engine=_mock_query_engine(), top_k="10", temperature="0.7"
-    )
+    adapter = LlamaIndexRAGSystem(query_engine=_mock_query_engine(), top_k="10", temperature="0.7")
     assert adapter.top_k == 10
     assert adapter.temperature == 0.7
 

@@ -51,9 +51,7 @@ class EvalDataset:
                 try:
                     obj = json.loads(line)
                 except json.JSONDecodeError as e:
-                    raise ValueError(
-                        f"Invalid JSON on line {line_num} of {path}: {e}"
-                    ) from e
+                    raise ValueError(f"Invalid JSON on line {line_num} of {path}: {e}") from e
                 items.append(
                     EvalItem(
                         question=obj["question"],
@@ -132,13 +130,10 @@ class EvalDataset:
             from datasets import load_dataset
         except ImportError:
             raise ImportError(
-                "datasets package required. "
-                "Install with: pip install ragharness[huggingface]"
+                "datasets package required. Install with: pip install ragharness[huggingface]"
             ) from None
 
-        ds = load_dataset(
-            name, config_name, split=split, trust_remote_code=trust_remote_code
-        )
+        ds = load_dataset(name, config_name, split=split, trust_remote_code=trust_remote_code)
 
         items: list[EvalItem] = []
         for idx, row in enumerate(ds):

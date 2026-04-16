@@ -96,8 +96,7 @@ class LlamaIndexRAGSystem:
             from llama_index.core import SimpleDirectoryReader, VectorStoreIndex
         except ImportError:
             raise ImportError(
-                "llama-index package required. "
-                "Install with: pip install ragharness[llamaindex]"
+                "llama-index package required. Install with: pip install ragharness[llamaindex]"
             ) from None
 
         documents = SimpleDirectoryReader(self.documents_path).load_data()

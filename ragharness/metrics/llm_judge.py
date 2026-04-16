@@ -92,9 +92,7 @@ class LLMJudge:
                     e,
                 )
 
-        logger.error(
-            "LLM judge failed after %d attempts, returning NaN", self.max_retries + 1
-        )
+        logger.error("LLM judge failed after %d attempts, returning NaN", self.max_retries + 1)
         return float("nan")
 
     def _call_llm(self, prompt: str) -> str:

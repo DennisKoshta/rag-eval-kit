@@ -84,9 +84,7 @@ class TestCheckApiKey:
 
     def test_key_present_passes(self, monkeypatch):
         monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-test")
-        check_api_key(
-            {"llm_provider": "anthropic", "llm_model": "claude-sonnet-4-20250514"}
-        )
+        check_api_key({"llm_provider": "anthropic", "llm_model": "claude-sonnet-4-20250514"})
 
     def test_unknown_provider_is_noop(self, monkeypatch):
         check_api_key({"llm_provider": "mystery-cloud"})
@@ -94,6 +92,4 @@ class TestCheckApiKey:
     def test_error_message_includes_model(self, monkeypatch):
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
         with pytest.raises(MissingAPIKeyError, match="claude-sonnet"):
-            check_api_key(
-                {"llm_provider": "anthropic", "llm_model": "claude-sonnet-4-20250514"}
-            )
+            check_api_key({"llm_provider": "anthropic", "llm_model": "claude-sonnet-4-20250514"})

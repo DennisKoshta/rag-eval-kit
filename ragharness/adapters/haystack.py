@@ -98,8 +98,7 @@ class HaystackRAGSystem:
             from haystack.document_stores.in_memory import InMemoryDocumentStore
         except ImportError:
             raise ImportError(
-                "haystack-ai package required. "
-                "Install with: pip install ragharness[haystack]"
+                "haystack-ai package required. Install with: pip install ragharness[haystack]"
             ) from None
 
         import os
@@ -165,9 +164,7 @@ class HaystackRAGSystem:
             run_data = self._default_run_data(question)
 
         start = time.perf_counter()
-        result = pipeline.run(
-            run_data, include_outputs_from={self.retriever_component}
-        )
+        result = pipeline.run(run_data, include_outputs_from={self.retriever_component})
         elapsed_ms = (time.perf_counter() - start) * 1000
 
         gen_out = result.get(self.generator_component, {}) or {}

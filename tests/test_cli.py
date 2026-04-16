@@ -21,9 +21,7 @@ def test_help():
 
 def test_validate_valid_config(tmp_path):
     cfg = tmp_path / "config.yaml"
-    cfg.write_text(
-        "dataset:\n  path: data.jsonl\nsystem:\n  adapter: raw\n"
-    )
+    cfg.write_text("dataset:\n  path: data.jsonl\nsystem:\n  adapter: raw\n")
     result = runner.invoke(main, ["validate", str(cfg)])
     assert result.exit_code == 0
     assert "Config is valid" in result.output
@@ -36,3 +34,9 @@ def test_validate_invalid_config(tmp_path):
     result = runner.invoke(main, ["validate", str(cfg)])
     assert result.exit_code == 1
     assert "validation failed" in result.output.lower() or result.exit_code != 0
+
+
+def test_run_help_mentions_seed():
+    result = runner.invoke(main, ["run", "--help"])
+    assert result.exit_code == 0
+    assert "--seed" in result.output

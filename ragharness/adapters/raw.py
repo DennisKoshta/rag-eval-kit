@@ -39,6 +39,10 @@ class RawRAGSystem:
         Number of documents to retrieve.
     temperature:
         Sampling temperature forwarded to the LLM.
+    seed:
+        Optional integer seed for reproducibility. Forwarded to OpenAI's
+        ``chat.completions.create(seed=...)``; silently ignored by Anthropic,
+        which does not expose a seed parameter.
     """
 
     def __init__(
@@ -49,6 +53,7 @@ class RawRAGSystem:
         prompt_template: str = DEFAULT_RAG_PROMPT,
         top_k: int = 5,
         temperature: float = 0.0,
+        seed: int | None = None,
         **kwargs: Any,
     ) -> None:
         self.llm_provider = llm_provider
@@ -57,6 +62,7 @@ class RawRAGSystem:
         self.prompt_template = prompt_template
         self.top_k = int(top_k)
         self.temperature = float(temperature)
+        self.seed = int(seed) if seed is not None else None
         self._extra = kwargs
         self._client: Any = None
 
@@ -118,11 +124,14 @@ class RawRAGSystem:
     def _call_llm(self, client: Any, prompt: str) -> tuple[str, int, int]:
         """Call the LLM and return (answer, prompt_tokens, completion_tokens)."""
         if self.llm_provider == "openai":
-            resp = client.chat.completions.create(
-                model=self.llm_model,
-                temperature=self.temperature,
-                messages=[{"role": "user", "content": prompt}],
-            )
+            openai_kwargs: dict[str, Any] = {
+                "model": self.llm_model,
+                "temperature": self.temperature,
+                "messages": [{"role": "user", "content": prompt}],
+            }
+            if self.seed is not None:
+                openai_kwargs["seed"] = self.seed
+            resp = client.chat.completions.create(**openai_kwargs)
             answer = resp.choices[0].message.content or ""
             usage = resp.usage
             prompt_toks = usage.prompt_tokens if usage else 0

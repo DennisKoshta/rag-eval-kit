@@ -95,9 +95,7 @@ def test_query_no_retriever_pure_llm():
 
 
 def test_query_anthropic_path():
-    adapter = LangChainRAGSystem(
-        llm_provider="anthropic", llm_model="claude-sonnet-4-20250514"
-    )
+    adapter = LangChainRAGSystem(llm_provider="anthropic", llm_model="claude-sonnet-4-20250514")
     adapter._llm = _mock_llm(input_tokens=60, output_tokens=12)
 
     result = adapter.query("Capital of France?")
@@ -215,9 +213,7 @@ def test_import_error_when_langchain_core_missing(monkeypatch):
 
 
 def test_create_adapter_langchain():
-    adapter = create_adapter(
-        "langchain", {"llm_provider": "openai", "llm_model": "gpt-4o"}
-    )
+    adapter = create_adapter("langchain", {"llm_provider": "openai", "llm_model": "gpt-4o"})
     assert isinstance(adapter, LangChainRAGSystem)
 
 

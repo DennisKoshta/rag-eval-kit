@@ -160,9 +160,7 @@ def test_query_no_replies_empty_answer():
 
 def test_query_without_retriever_output():
     """include_outputs_from may fail / user pipeline may skip — retrieved_docs stays []."""
-    pipe = _mock_pipeline(
-        result={"generator": {"replies": ["ok"], "meta": [{"usage": {}}]}}
-    )
+    pipe = _mock_pipeline(result={"generator": {"replies": ["ok"], "meta": [{"usage": {}}]}})
     adapter = HaystackRAGSystem(pipeline=pipe)
 
     result = adapter.query("hi")

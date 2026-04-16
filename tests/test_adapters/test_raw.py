@@ -101,6 +101,45 @@ def test_sweep_params_cast_types():
     assert adapter.temperature == 0.7
 
 
+# ── Seed plumbing ───────────────────────────────────────
+
+
+def test_seed_forwarded_to_openai():
+    """When seed is set it should appear in the OpenAI call kwargs."""
+    adapter = RawRAGSystem(llm_provider="openai", llm_model="gpt-4o", seed=123)
+    client = _mock_openai_client()
+    adapter._client = client
+
+    adapter.query("hi")
+
+    kwargs = client.chat.completions.create.call_args.kwargs
+    assert kwargs["seed"] == 123
+
+
+def test_seed_omitted_when_none():
+    """When seed is None, no 'seed' kwarg is sent to OpenAI."""
+    adapter = RawRAGSystem(llm_provider="openai", llm_model="gpt-4o")
+    client = _mock_openai_client()
+    adapter._client = client
+
+    adapter.query("hi")
+
+    kwargs = client.chat.completions.create.call_args.kwargs
+    assert "seed" not in kwargs
+
+
+def test_seed_ignored_by_anthropic():
+    """Anthropic doesn't accept seed — it must not be forwarded."""
+    adapter = RawRAGSystem(llm_provider="anthropic", llm_model="claude-sonnet-4-20250514", seed=99)
+    client = _mock_anthropic_client()
+    adapter._client = client
+
+    adapter.query("hi")
+
+    kwargs = client.messages.create.call_args.kwargs
+    assert "seed" not in kwargs
+
+
 # ── Unknown provider ────────────────────────────────────
 
 

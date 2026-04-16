@@ -29,16 +29,21 @@ def main(verbose: bool) -> None:
 @main.command()
 @click.argument("config", type=click.Path(exists=True))
 @click.option("--dry-run", is_flag=True, help="Print run plan without executing.")
-@click.option(
-    "--output-dir", type=click.Path(), default=None, help="Override output directory."
-)
-@click.option(
-    "--filter", "filter_str", default=None, help='Filter configs (e.g. "top_k=5").'
-)
+@click.option("--output-dir", type=click.Path(), default=None, help="Override output directory.")
+@click.option("--filter", "filter_str", default=None, help='Filter configs (e.g. "top_k=5").')
 @click.option("--no-confirm", is_flag=True, help="Skip cost confirmation prompt.")
 @click.option(
-    "--verbose", "verbose_queries", is_flag=True,
+    "--verbose",
+    "verbose_queries",
+    is_flag=True,
     help="Show per-question results as they complete.",
+)
+@click.option(
+    "--seed",
+    type=int,
+    default=None,
+    help="Integer seed for reproducibility, injected into adapter_config. "
+    "Honoured by OpenAI; silently ignored by providers without seed support.",
 )
 def run(
     config: str,
@@ -47,6 +52,7 @@ def run(
     no_confirm: bool,
     filter_str: str | None,
     verbose_queries: bool,
+    seed: int | None,
 ) -> None:
     """Run an evaluation sweep from a config file."""
     from ragharness.auth import MissingAPIKeyError, load_dotenv
@@ -67,9 +73,15 @@ def run(
         if key in cfg.sweep:
             cfg.sweep[key] = [v for v in cfg.sweep[key] if str(v) == value]
 
+    if seed is not None:
+        cfg.system.adapter_config["seed"] = seed
+
     try:
         result = run_sweep(
-            cfg, dry_run=dry_run, no_confirm=no_confirm, verbose=verbose_queries,
+            cfg,
+            dry_run=dry_run,
+            no_confirm=no_confirm,
+            verbose=verbose_queries,
         )
     except MissingAPIKeyError as e:
         click.echo(f"Error: {e}", err=True)
@@ -101,9 +113,7 @@ def _print_summary(result: object) -> None:
     click.echo(f"{'=' * 60}")
     for run_result in result.runs:
         label = (
-            ", ".join(
-                f"{k}={v}" for k, v in sorted(run_result.config_params.items())
-            )
+            ", ".join(f"{k}={v}" for k, v in sorted(run_result.config_params.items()))
             or "baseline"
         )
         click.echo(f"\n  [{label}]")
@@ -142,7 +152,9 @@ def validate(config: str) -> None:
 @main.command()
 @click.argument("csv_path", type=click.Path(exists=True))
 @click.option(
-    "--output-dir", type=click.Path(), default=None,
+    "--output-dir",
+    type=click.Path(),
+    default=None,
     help="Output directory for charts.",
 )
 def report(csv_path: str, output_dir: str | None) -> None:

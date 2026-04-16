@@ -29,7 +29,15 @@ AGGREGATE_REGISTRY: dict[str, AggregateMetric] = {
 def get_per_question_metric(name: str, **kwargs: Any) -> PerQuestionMetric:
     """Look up a per-question metric by name.
 
-    For ``llm_judge``, *kwargs* are forwarded to ``LLMJudge.__init__``.
+    Per-question metrics have the signature ``(EvalItem, RAGResult) -> float``
+    and are called once per dataset item per sweep configuration.
+
+    The special name ``llm_judge`` is handled lazily because it needs to
+    instantiate an LLM client — *kwargs* are forwarded to
+    :class:`ragharness.metrics.llm_judge.LLMJudge`.
+
+    Raises ``ValueError`` if the name is unknown. Register new metrics by
+    mutating ``PER_QUESTION_REGISTRY`` before calling ``run_sweep``.
     """
     if name == "llm_judge":
         from ragharness.metrics.llm_judge import LLMJudge
@@ -42,7 +50,15 @@ def get_per_question_metric(name: str, **kwargs: Any) -> PerQuestionMetric:
 
 
 def get_aggregate_metric(name: str) -> AggregateMetric:
-    """Look up an aggregate metric by name."""
+    """Look up an aggregate metric by name.
+
+    Aggregate metrics have the signature ``(list[RAGResult], **kwargs) -> float``
+    and are called once per sweep configuration after all per-question
+    scoring is complete. Register new metrics by mutating
+    ``AGGREGATE_REGISTRY`` before calling ``run_sweep``.
+
+    Raises ``ValueError`` if the name is unknown.
+    """
     if name not in AGGREGATE_REGISTRY:
         raise ValueError(f"Unknown aggregate metric: {name!r}")
     return AGGREGATE_REGISTRY[name]

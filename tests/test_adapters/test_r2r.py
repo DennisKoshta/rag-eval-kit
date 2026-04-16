@@ -74,9 +74,7 @@ def test_query_passes_top_k_as_limit():
 
 
 def test_query_passes_model_and_temperature():
-    adapter = R2RRAGSystem(
-        base_url="http://x", llm_model="openai/gpt-4o", temperature=0.3
-    )
+    adapter = R2RRAGSystem(base_url="http://x", llm_model="openai/gpt-4o", temperature=0.3)
     mock = _mock_r2r_client()
     adapter._client = mock
 
@@ -164,9 +162,7 @@ def test_query_without_wrapper():
 
 def test_sweep_params_cast_types():
     """Sweep values from YAML arrive as strings; ensure they're cast."""
-    adapter = R2RRAGSystem(
-        base_url="http://x", top_k="10", temperature="0.7", max_tokens="2048"
-    )
+    adapter = R2RRAGSystem(base_url="http://x", top_k="10", temperature="0.7", max_tokens="2048")
     assert adapter.top_k == 10
     assert adapter.temperature == 0.7
     assert adapter.max_tokens == 2048

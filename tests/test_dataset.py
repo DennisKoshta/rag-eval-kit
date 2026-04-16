@@ -151,9 +151,7 @@ def test_from_huggingface_dotted_path(monkeypatch):
         [{"question": "Capital of France?", "answers": {"text": ["Paris"]}}],
     )
 
-    ds = EvalDataset.from_huggingface(
-        "fake/squad", answer_field="answers.text.0"
-    )
+    ds = EvalDataset.from_huggingface("fake/squad", answer_field="answers.text.0")
     assert ds[0].expected_answer == "Paris"
 
 
@@ -179,9 +177,7 @@ def test_from_huggingface_missing_field_raises(monkeypatch):
 
 def test_from_huggingface_trust_remote_code_default_false(monkeypatch):
     calls: list[dict] = []
-    _install_fake_load_dataset(
-        monkeypatch, [{"question": "Q", "answer": "A"}], calls=calls
-    )
+    _install_fake_load_dataset(monkeypatch, [{"question": "Q", "answer": "A"}], calls=calls)
 
     EvalDataset.from_huggingface("fake/ds", split="train", config_name="distractor")
     assert calls[0]["args"] == ("fake/ds", "distractor")

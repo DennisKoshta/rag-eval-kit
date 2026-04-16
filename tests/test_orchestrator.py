@@ -41,8 +41,12 @@ def test_expand_sweep_three_params():
 
 def test_estimate_cost_basic():
     cost = estimate_cost(
-        100, 2, avg_prompt_tokens=1000, avg_completion_tokens=500,
-        input_per_1k=0.003, output_per_1k=0.015,
+        100,
+        2,
+        avg_prompt_tokens=1000,
+        avg_completion_tokens=500,
+        input_per_1k=0.003,
+        output_per_1k=0.015,
     )
     # 200 queries * (1000/1000 * 0.003 + 500/1000 * 0.015) = 200 * 0.0105 = 2.10
     assert abs(cost - 2.10) < 1e-9
@@ -79,9 +83,9 @@ def _make_config(dataset_path: str, sweep: dict | None = None, metrics: list | N
 def test_run_sweep_baseline(tmp_path, _patch_adapter):
     """Single baseline config (no sweep), 3 questions."""
     ds_path = tmp_path / "ds.jsonl"
-    ds_path.write_text("\n".join(
-        json.dumps({"question": f"Q{i}", "expected_answer": "42"}) for i in range(3)
-    ))
+    ds_path.write_text(
+        "\n".join(json.dumps({"question": f"Q{i}", "expected_answer": "42"}) for i in range(3))
+    )
 
     cfg = _make_config(str(ds_path))
     result = run_sweep(cfg, no_confirm=True)
@@ -98,9 +102,9 @@ def test_run_sweep_baseline(tmp_path, _patch_adapter):
 def test_run_sweep_with_sweep_params(tmp_path, _patch_adapter):
     """2x2 sweep = 4 configs."""
     ds_path = tmp_path / "ds.jsonl"
-    ds_path.write_text("\n".join(
-        json.dumps({"question": f"Q{i}", "expected_answer": "42"}) for i in range(2)
-    ))
+    ds_path.write_text(
+        "\n".join(json.dumps({"question": f"Q{i}", "expected_answer": "42"}) for i in range(2))
+    )
 
     cfg = _make_config(
         str(ds_path),
@@ -129,9 +133,9 @@ def test_run_sweep_dry_run(tmp_path, _patch_adapter):
 def test_run_sweep_with_limit(tmp_path, _patch_adapter):
     """Dataset limit truncates questions."""
     ds_path = tmp_path / "ds.jsonl"
-    ds_path.write_text("\n".join(
-        json.dumps({"question": f"Q{i}", "expected_answer": "42"}) for i in range(10)
-    ))
+    ds_path.write_text(
+        "\n".join(json.dumps({"question": f"Q{i}", "expected_answer": "42"}) for i in range(10))
+    )
 
     cfg = _make_config(str(ds_path))
     cfg.dataset.limit = 3
@@ -146,13 +150,13 @@ def test_run_sweep_hf_source(monkeypatch, _patch_adapter):
 
     def _fake_hf_load(name, **kwargs):
         assert name == "fake/ds"
-        return EvalDataset([
-            EvalItem(question=f"Q{i}", expected_answer="42") for i in range(3)
-        ])
+        return EvalDataset([EvalItem(question=f"Q{i}", expected_answer="42") for i in range(3)])
 
-    monkeypatch.setattr(EvalDataset, "from_huggingface", classmethod(
-        lambda cls, name, **kwargs: _fake_hf_load(name, **kwargs)
-    ))
+    monkeypatch.setattr(
+        EvalDataset,
+        "from_huggingface",
+        classmethod(lambda cls, name, **kwargs: _fake_hf_load(name, **kwargs)),
+    )
 
     cfg = RagHarnessConfig(
         dataset={"source": "huggingface", "name": "fake/ds"},
@@ -167,9 +171,9 @@ def test_run_sweep_hf_source(monkeypatch, _patch_adapter):
 def test_run_sweep_aggregate_latency(tmp_path, _patch_adapter):
     """Latency metrics should be populated from metadata."""
     ds_path = tmp_path / "ds.jsonl"
-    ds_path.write_text("\n".join(
-        json.dumps({"question": f"Q{i}", "expected_answer": "42"}) for i in range(5)
-    ))
+    ds_path.write_text(
+        "\n".join(json.dumps({"question": f"Q{i}", "expected_answer": "42"}) for i in range(5))
+    )
 
     cfg = _make_config(str(ds_path))
     result = run_sweep(cfg, no_confirm=True)

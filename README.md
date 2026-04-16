@@ -1,6 +1,15 @@
 # ragharness
 
+[![PyPI version](https://img.shields.io/pypi/v/ragharness.svg)](https://pypi.org/project/ragharness/)
+[![Python versions](https://img.shields.io/pypi/pyversions/ragharness.svg)](https://pypi.org/project/ragharness/)
+[![CI](https://github.com/DennisKoshta/ragharness/actions/workflows/ci.yml/badge.svg)](https://github.com/DennisKoshta/ragharness/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Pluggable RAG evaluation framework. Run any RAG system against a labeled Q/A dataset and get accuracy, latency, and cost metrics across a configuration sweep.
+
+## Why ragharness?
+
+Most teams end up writing one-off eval scripts per project: a loop that calls their RAG pipeline, compares outputs to a golden set, and prints a number. That works once — but the moment you want to sweep across `top_k`, temperatures, or chunking strategies, or compare LangChain vs LlamaIndex on the same dataset, those scripts turn into glue code. ragharness replaces that glue with a YAML config + a single `RAGSystem` protocol (one method: `query`), so the same eval loop drives any system, any metric, any config matrix — and spits out CSVs and charts teams can actually share.
 
 ## Installation
 

@@ -37,22 +37,15 @@ def write_charts(sweep_result: SweepResult, output_dir: str | Path) -> Path:
 def _config_labels(sweep_result: SweepResult) -> list[str]:
     labels = []
     for run in sweep_result.runs:
-        label = (
-            ", ".join(f"{k}={v}" for k, v in sorted(run.config_params.items()))
-            or "baseline"
-        )
+        label = ", ".join(f"{k}={v}" for k, v in sorted(run.config_params.items())) or "baseline"
         labels.append(label)
     return labels
 
 
-def _chart_accuracy(
-    sweep_result: SweepResult, labels: list[str], output_dir: Path
-) -> None:
+def _chart_accuracy(sweep_result: SweepResult, labels: list[str], output_dir: Path) -> None:
     """Grouped bar chart of mean per-question metric scores."""
     # Gather all mean_* keys
-    mean_keys = sorted(
-        k for k in sweep_result.runs[0].aggregate_scores if k.startswith("mean_")
-    )
+    mean_keys = sorted(k for k in sweep_result.runs[0].aggregate_scores if k.startswith("mean_"))
     if not mean_keys:
         return
 
@@ -80,8 +73,7 @@ def _chart_latency_distribution(
 ) -> None:
     """Box plot of per-query latency across configurations."""
     latency_data = [
-        [r.metadata.get("latency_ms", 0.0) for r in run.raw_results]
-        for run in sweep_result.runs
+        [r.metadata.get("latency_ms", 0.0) for r in run.raw_results] for run in sweep_result.runs
     ]
     if not any(latency_data):
         return
@@ -108,9 +100,7 @@ def _chart_cost_vs_accuracy(
     if accuracy_key not in sweep_result.runs[0].aggregate_scores:
         return
 
-    accuracies = [
-        run.aggregate_scores.get(accuracy_key, 0.0) for run in sweep_result.runs
-    ]
+    accuracies = [run.aggregate_scores.get(accuracy_key, 0.0) for run in sweep_result.runs]
 
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.scatter(costs, accuracies)
@@ -124,9 +114,7 @@ def _chart_cost_vs_accuracy(
     plt.close(fig)
 
 
-def _chart_per_metric_bars(
-    sweep_result: SweepResult, labels: list[str], output_dir: Path
-) -> None:
+def _chart_per_metric_bars(sweep_result: SweepResult, labels: list[str], output_dir: Path) -> None:
     """One bar chart per aggregate metric (excluding mean_ and token_cost)."""
     skip = {"token_cost"}
     agg_keys = sorted(
@@ -136,9 +124,7 @@ def _chart_per_metric_bars(
     )
 
     for metric_name in agg_keys:
-        values = [
-            run.aggregate_scores.get(metric_name, 0.0) for run in sweep_result.runs
-        ]
+        values = [run.aggregate_scores.get(metric_name, 0.0) for run in sweep_result.runs]
         fig, ax = plt.subplots(figsize=(max(8, len(labels) * 1.5), 5))
         ax.bar(range(len(values)), values)
         ax.set_xticks(range(len(labels)))

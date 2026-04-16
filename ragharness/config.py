@@ -56,9 +56,7 @@ class SystemConfig(BaseModel):
     @classmethod
     def _validate_adapter(cls, v: str) -> str:
         if v not in KNOWN_ADAPTERS:
-            raise ValueError(
-                f"Unknown adapter: {v!r}. Supported: {sorted(KNOWN_ADAPTERS)}"
-            )
+            raise ValueError(f"Unknown adapter: {v!r}. Supported: {sorted(KNOWN_ADAPTERS)}")
         return v
 
 
@@ -97,9 +95,7 @@ class RagHarnessConfig(BaseModel):
             else:
                 raise ValueError(f"Metric entry must be a string or dict, got: {type(entry)}")
             if name not in KNOWN_METRICS:
-                raise ValueError(
-                    f"Unknown metric: {name!r}. Supported: {sorted(KNOWN_METRICS)}"
-                )
+                raise ValueError(f"Unknown metric: {name!r}. Supported: {sorted(KNOWN_METRICS)}")
         return v
 
 
@@ -111,7 +107,5 @@ def load_config(path: str | Path) -> RagHarnessConfig:
     with path.open() as f:
         raw = yaml.safe_load(f)
     if not isinstance(raw, dict):
-        raise ValueError(
-            f"Config file must contain a YAML mapping, got {type(raw).__name__}"
-        )
+        raise ValueError(f"Config file must contain a YAML mapping, got {type(raw).__name__}")
     return RagHarnessConfig(**raw)

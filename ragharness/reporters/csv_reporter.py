@@ -29,25 +29,18 @@ def _write_detail(sweep_result: SweepResult, path: Path) -> None:
     first_run = sweep_result.runs[0]
     config_keys = sorted(first_run.config_params.keys()) if first_run.config_params else []
     metric_keys = (
-        sorted(first_run.per_question_scores[0].keys())
-        if first_run.per_question_scores
-        else []
+        sorted(first_run.per_question_scores[0].keys()) if first_run.per_question_scores else []
     )
 
     fieldnames = (
-        config_keys
-        + ["question", "expected_answer", "answer"]
-        + metric_keys
-        + ["latency_ms"]
+        config_keys + ["question", "expected_answer", "answer"] + metric_keys + ["latency_ms"]
     )
 
     with path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for run in sweep_result.runs:
-            for item, result, scores in zip(
-                run.items, run.raw_results, run.per_question_scores
-            ):
+            for item, result, scores in zip(run.items, run.raw_results, run.per_question_scores):
                 row: dict[str, object] = {**run.config_params}
                 row["question"] = item.question
                 row["expected_answer"] = item.expected_answer

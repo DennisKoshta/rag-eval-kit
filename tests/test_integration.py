@@ -16,10 +16,7 @@ runner = CliRunner()
 def _write_dataset(tmp_path, n: int = 3):
     ds = tmp_path / "dataset.jsonl"
     ds.write_text(
-        "\n".join(
-            json.dumps({"question": f"Q{i}", "expected_answer": "42"})
-            for i in range(n)
-        )
+        "\n".join(json.dumps({"question": f"Q{i}", "expected_answer": "42"}) for i in range(n))
     )
     return ds
 
@@ -109,9 +106,13 @@ def test_run_with_filter(tmp_path):
     result = runner.invoke(
         main,
         [
-            "run", str(cfg), "--no-confirm",
-            "--output-dir", str(tmp_path / "out"),
-            "--filter", "top_k=5",
+            "run",
+            str(cfg),
+            "--no-confirm",
+            "--output-dir",
+            str(tmp_path / "out"),
+            "--filter",
+            "top_k=5",
         ],
     )
 
@@ -129,18 +130,14 @@ def test_report_regenerates_charts(tmp_path):
     ds = _write_dataset(tmp_path)
     cfg = _write_config(tmp_path, ds)
 
-    runner.invoke(
-        main, ["run", str(cfg), "--no-confirm", "--output-dir", str(tmp_path / "out")]
-    )
+    runner.invoke(main, ["run", str(cfg), "--no-confirm", "--output-dir", str(tmp_path / "out")])
 
     summary_csv = tmp_path / "out" / "results_summary.csv"
     assert summary_csv.exists()
 
     # Now regenerate charts from the CSV
     regen_dir = tmp_path / "regen"
-    result = runner.invoke(
-        main, ["report", str(summary_csv), "--output-dir", str(regen_dir)]
-    )
+    result = runner.invoke(main, ["report", str(summary_csv), "--output-dir", str(regen_dir)])
 
     assert result.exit_code == 0, result.output
     assert "regenerated" in result.output.lower()

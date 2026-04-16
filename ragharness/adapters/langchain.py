@@ -66,8 +66,7 @@ class LangChainRAGSystem:
             import langchain_core  # noqa: F401
         except ImportError:
             raise ImportError(
-                "langchain-core package required. "
-                "Install with: pip install ragharness[langchain]"
+                "langchain-core package required. Install with: pip install ragharness[langchain]"
             ) from None
 
         self.llm_provider = llm_provider
@@ -179,8 +178,9 @@ class LangChainRAGSystem:
         if isinstance(output, dict):
             answer = str(output.get("answer", ""))
             docs_raw = output.get("retrieved_docs", []) or []
-            docs = [d if isinstance(d, str) else getattr(d, "page_content", str(d))
-                    for d in docs_raw]
+            docs = [
+                d if isinstance(d, str) else getattr(d, "page_content", str(d)) for d in docs_raw
+            ]
             usage = output.get("usage") or {}
             return (
                 answer,
