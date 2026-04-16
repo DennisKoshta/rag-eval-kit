@@ -41,7 +41,7 @@ def _write_detail(sweep_result: SweepResult, path: Path) -> None:
         + ["latency_ms"]
     )
 
-    with path.open("w", newline="") as f:
+    with path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for run in sweep_result.runs:
@@ -63,7 +63,7 @@ def _write_summary(sweep_result: SweepResult, path: Path) -> None:
     agg_keys = sorted(first_run.aggregate_scores.keys())
     fieldnames = config_keys + agg_keys
 
-    with path.open("w", newline="") as f:
+    with path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for run in sweep_result.runs:
