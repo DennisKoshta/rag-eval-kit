@@ -77,6 +77,7 @@ class OutputConfig(BaseModel):
     csv: str | None = "./results/run_{timestamp}.csv"
     charts: str | None = "./results/charts/"
     checkpoint: str | None = None
+    html: str | None = None
 
 
 class RagHarnessConfig(BaseModel):

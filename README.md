@@ -75,6 +75,7 @@ metrics:
 output:
   csv: ./results/run.csv
   charts: ./results/charts/
+  html: ./results/report.html
 ```
 
 ### 3. Run
@@ -106,6 +107,12 @@ ragharness validate CONFIG   Validate a config file without running
 
 ragharness report CSV_PATH   Re-generate charts from existing results
   --output-dir DIR           Output directory for charts
+  --html PATH                Generate a self-contained HTML report
+
+ragharness compare CSV_A CSV_B  Compare two results_summary.csv files
+  --output PATH              Write comparison CSV
+  --threshold FLOAT          Min absolute delta to flag (default 0.05)
+  --html PATH                Write an HTML comparison report
 ```
 
 ### Parallel sweeps
@@ -116,18 +123,37 @@ LLM calls are I/O-bound, so `--concurrency 8` usually gets a ~6–8× speedup on
 
 Pass `--checkpoint path.jsonl` (or set `output.checkpoint` in YAML) and every completed `(config, question)` pair appends to that file immediately. If the process dies or you Ctrl-C out, re-running with the same checkpoint skips the completed items — no wasted tokens. The checkpoint records each row's `config_params`; if you edit your sweep between runs, mismatched rows are flagged and re-run.
 
+### HTML reports
+
+Set `output.html: ./results/report.html` in your config (or pass `--html` to `ragharness report`) and get a single self-contained HTML file with sortable tables, inline charts, and a text filter for per-question results. No external CSS/JS — the file is fully portable and can be shared as-is.
+
+### Comparing runs
+
+After tweaking a retriever and re-running, use `ragharness compare` to diff two result CSVs:
+
+```bash
+ragharness compare results_v1/results_summary.csv results_v2/results_summary.csv --html diff.html
+```
+
+Configs are matched by parameter equality. Each metric gets an absolute delta, percentage change, and directional indicator (improved/regressed/unchanged). Latency and cost metrics are direction-aware — a decrease is an improvement.
+
+### Tag-based breakdown
+
+If your dataset includes tags on `EvalItem` (e.g. `{"topic": "physics"}`), ragharness automatically groups per-question scores by tag and reports per-tag averages in `results_tags.csv` and the HTML report's "Tag Breakdown" section. No config changes needed — tags are detected from the data.
+
 ## Python API
 
 ```python
 from ragharness import RAGSystem, RAGResult, EvalDataset
 from ragharness.config import load_config
 from ragharness.orchestrator import run_sweep
-from ragharness.reporters import write_csv, write_charts
+from ragharness.reporters import write_csv, write_charts, write_html
 
 config = load_config("config.yaml")
 result = run_sweep(config, no_confirm=True)
 write_csv(result, "results/")
 write_charts(result, "results/charts/")
+write_html(result, "results/report.html")
 ```
 
 ## Custom RAG Systems
@@ -189,6 +215,7 @@ No inheritance required. Any object with a conforming `query` method works.
 | `metrics` | | List of metric names (strings or dicts with params) |
 | `output` | `csv` | CSV output path |
 | `output` | `charts` | Charts output directory |
+| `output` | `html` | Self-contained HTML report path |
 | `output` | `checkpoint` | JSONL checkpoint path for resumable runs |
 | `concurrency` | | Parallel queries per config (default `1`) |
 

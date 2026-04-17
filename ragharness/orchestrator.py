@@ -50,6 +50,7 @@ class RunResult:
     aggregate_scores: dict[str, float]
     raw_results: list[RAGResult]
     items: list[EvalItem]
+    tag_scores: dict[str, dict[str, dict[str, float]]] = field(default_factory=dict)
 
 
 @dataclass
@@ -329,6 +330,12 @@ def _run_single_config(
         values = [s[pq_name] for s in per_q_scores if pq_name in s]
         agg_scores[f"mean_{pq_name}"] = sum(values) / len(values) if values else 0.0
 
+    tag_scores: dict[str, dict[str, dict[str, float]]] = {}
+    if any(item.tags for item in items):
+        from ragharness.tag_grouping import compute_tag_scores
+
+        tag_scores = compute_tag_scores(items, per_q_scores)
+
     click.echo(f"  Results: {agg_scores}")
 
     return RunResult(
@@ -337,6 +344,7 @@ def _run_single_config(
         aggregate_scores=agg_scores,
         raw_results=results,
         items=items,
+        tag_scores=tag_scores,
     )
 
 

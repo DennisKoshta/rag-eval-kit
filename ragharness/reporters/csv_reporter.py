@@ -22,6 +22,9 @@ def write_csv(sweep_result: SweepResult, output_dir: str | Path) -> Path:
     _write_detail(sweep_result, output_dir / "results_detail.csv")
     _write_summary(sweep_result, output_dir / "results_summary.csv")
 
+    if any(run.tag_scores for run in sweep_result.runs):
+        _write_tag_summary(sweep_result, output_dir / "results_tags.csv")
+
     return output_dir
 
 
@@ -48,6 +51,33 @@ def _write_detail(sweep_result: SweepResult, path: Path) -> None:
                 row["latency_ms"] = f"{result.metadata.get('latency_ms', 0.0):.2f}"
                 row.update(scores)
                 writer.writerow(row)
+
+
+def _write_tag_summary(sweep_result: SweepResult, path: Path) -> None:
+    first_run = sweep_result.runs[0]
+    config_keys = sorted(first_run.config_params.keys()) if first_run.config_params else []
+
+    metric_keys: set[str] = set()
+    for run in sweep_result.runs:
+        for tag_vals in run.tag_scores.values():
+            for scores in tag_vals.values():
+                metric_keys.update(scores)
+
+    sorted_metrics = sorted(metric_keys)
+    fieldnames = config_keys + ["tag_key", "tag_value"] + sorted_metrics
+
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        for run in sweep_result.runs:
+            for tag_key, tag_vals in sorted(run.tag_scores.items()):
+                for tag_val, scores in sorted(tag_vals.items()):
+                    row: dict[str, object] = {**run.config_params}
+                    row["tag_key"] = tag_key
+                    row["tag_value"] = tag_val
+                    for m in sorted_metrics:
+                        row[m] = f"{scores.get(m, 0.0):.4f}"
+                    writer.writerow(row)
 
 
 def _write_summary(sweep_result: SweepResult, path: Path) -> None:

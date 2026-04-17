@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-17
+
+### Added
+- `ragharness compare CSV_A CSV_B` — diff two `results_summary.csv` files side by side with per-metric deltas, percentage changes, and directional indicators (improved/regressed/unchanged). Supports `--threshold`, `--output` CSV, and `--html` report.
+- Self-contained HTML report generation (`output.html` in YAML config, or `--html` on `ragharness report`). All CSS, JS, and charts are inlined — no external dependencies. Tables are sortable and filterable via embedded JavaScript.
+- Tag-based metric grouping: when `EvalItem.tags` are present, per-question scores are automatically grouped by tag key/value and averaged. Results appear in `results_tags.csv` and the HTML report's "Tag Breakdown" section.
+- `write_html()` and `write_comparison_html()` public API in `ragharness.reporters.html_reporter`.
+- `compare_results()` and `write_comparison_csv()` public API in `ragharness.reporters.compare_reporter`.
+- `compute_tag_scores()` in `ragharness.tag_grouping` for programmatic tag-based aggregation.
+
+### Changed
+- Chart reporter internals refactored: each chart type now has a separate `_make_*_fig()` function returning a `Figure | None`, enabling reuse by the HTML reporter without file I/O.
+- `RunResult` dataclass gains a `tag_scores` field (`default_factory=dict`) — fully backward-compatible.
+
 ## [0.3.0] - 2026-04-16
 
 ### Added
@@ -50,7 +64,8 @@ Initial public release.
 - Auth helper with `.env` loading and user-friendly `MissingAPIKeyError`.
 - Strict mypy, ruff, and a pytest suite with adapter/metric/reporter/config coverage.
 
-[Unreleased]: https://github.com/DennisKoshta/ragharness/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/DennisKoshta/ragharness/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/DennisKoshta/ragharness/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/DennisKoshta/ragharness/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/DennisKoshta/ragharness/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/DennisKoshta/ragharness/releases/tag/v0.1.0

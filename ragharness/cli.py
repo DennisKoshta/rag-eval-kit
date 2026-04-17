@@ -123,8 +123,28 @@ def run(
         chart_dir = write_charts(result, out_dir / "charts")
         click.echo(f"Charts written to {chart_dir}")
 
+    if cfg.output.html:
+        from ragharness.reporters.html_reporter import write_html
+
+        tag_scores: dict[str, dict[str, dict[str, float]]] | None = None
+        if any(run_result.tag_scores for run_result in result.runs):
+            merged: dict[str, dict[str, dict[str, float]]] = {}
+            for run_result in result.runs:
+                for tag_key, tag_vals in run_result.tag_scores.items():
+                    merged.setdefault(tag_key, {}).update(tag_vals)
+            tag_scores = merged
+        html_path = write_html(result, cfg.output.html, tag_scores=tag_scores)
+        click.echo(f"HTML report written to {html_path}")
+
     # Print summary table
     _print_summary(result)
+
+
+def _config_label(run_result: object) -> str:
+    from ragharness.orchestrator import RunResult
+
+    assert isinstance(run_result, RunResult)
+    return ", ".join(f"{k}={v}" for k, v in sorted(run_result.config_params.items())) or "baseline"
 
 
 def _print_summary(result: object) -> None:
@@ -136,10 +156,7 @@ def _print_summary(result: object) -> None:
     click.echo("Summary")
     click.echo(f"{'=' * 60}")
     for run_result in result.runs:
-        label = (
-            ", ".join(f"{k}={v}" for k, v in sorted(run_result.config_params.items()))
-            or "baseline"
-        )
+        label = _config_label(run_result)
         click.echo(f"\n  [{label}]")
         for metric, value in sorted(run_result.aggregate_scores.items()):
             click.echo(f"    {metric}: {value:.4f}")
@@ -181,7 +198,14 @@ def validate(config: str) -> None:
     default=None,
     help="Output directory for charts.",
 )
-def report(csv_path: str, output_dir: str | None) -> None:
+@click.option(
+    "--html",
+    "html_path",
+    type=click.Path(),
+    default=None,
+    help="Generate a self-contained HTML report.",
+)
+def report(csv_path: str, output_dir: str | None, html_path: str | None) -> None:
     """Re-generate charts from an existing results_summary.csv."""
     from ragharness.orchestrator import RunResult, SweepResult
     from ragharness.reporters import write_charts
@@ -213,3 +237,64 @@ def report(csv_path: str, output_dir: str | None) -> None:
     sweep_result = SweepResult(runs=runs)
     chart_dir = write_charts(sweep_result, out_dir)
     click.echo(f"Charts regenerated in {chart_dir}")
+
+    if html_path:
+        from ragharness.reporters.html_reporter import write_html
+
+        hp = write_html(sweep_result, html_path)
+        click.echo(f"HTML report written to {hp}")
+
+
+# ── compare ──────────────────────────────────────────────
+
+
+@main.command()
+@click.argument("csv_a", type=click.Path(exists=True))
+@click.argument("csv_b", type=click.Path(exists=True))
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(),
+    default=None,
+    help="Write comparison CSV.",
+)
+@click.option(
+    "--threshold",
+    "-t",
+    type=float,
+    default=0.05,
+    help="Min absolute delta to flag as changed (default 0.05).",
+)
+@click.option(
+    "--html",
+    "html_path",
+    type=click.Path(),
+    default=None,
+    help="Write an HTML comparison report.",
+)
+def compare(
+    csv_a: str,
+    csv_b: str,
+    output: str | None,
+    threshold: float,
+    html_path: str | None,
+) -> None:
+    """Compare two results_summary.csv files side by side."""
+    from ragharness.reporters.compare_reporter import (
+        compare_results,
+        format_comparison_table,
+        write_comparison_csv,
+    )
+
+    result = compare_results(csv_a, csv_b, threshold=threshold)
+    click.echo(format_comparison_table(result))
+
+    if output:
+        write_comparison_csv(result, output)
+        click.echo(f"Comparison CSV written to {output}")
+
+    if html_path:
+        from ragharness.reporters.html_reporter import write_comparison_html
+
+        write_comparison_html(result, html_path)
+        click.echo(f"Comparison HTML written to {html_path}")
