@@ -9,9 +9,20 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 # ── Known metric / adapter names ────────────────────────
 
 KNOWN_METRICS = {
+    # Answer quality (per-question)
     "exact_match",
+    "contains",
+    "f1_token",
+    "rouge_l",
     "llm_judge",
+    "llm_faithfulness",
+    # Retrieval quality (per-question)
     "precision_at_k",
+    "recall_at_k",
+    "hit_rate_at_k",
+    "mrr",
+    "ndcg_at_k",
+    # Aggregate
     "latency_p50",
     "latency_p95",
     "token_cost",

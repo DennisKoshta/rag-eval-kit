@@ -1,5 +1,24 @@
 # Writing a custom metric
 
+## Choosing a built-in metric
+
+Pick the metric that matches your task shape before you write a new one.
+
+| Task shape | Recommended metric(s) | Why |
+|---|---|---|
+| Exact-string QA ("Paris", "42", "Au") | `exact_match`, `contains` | Strict vs. substring — `contains` handles "The capital is Paris." |
+| SQuAD-style span QA | `f1_token` | Token-level precision/recall that shrugs off word-order noise |
+| Summarisation / long-form | `rouge_l` | LCS-based F-measure; rewards shared ordered phrases |
+| Open-ended / creative | `llm_judge` | Semantic correctness when string overlap isn't enough |
+| Hallucination detection | `llm_faithfulness` | Judges grounding in `retrieved_docs`, not correctness |
+| Retrieval ablation (which retriever?) | `precision_at_k`, `recall_at_k`, `hit_rate_at_k`, `mrr`, `ndcg_at_k` | Standard IR metrics — combine for a full picture |
+| Latency-sensitive systems | `latency_p50`, `latency_p95` | Aggregate latency from `metadata.latency_ms` |
+| Cost-sensitive sweeps | `token_cost` | Aggregate USD from token counts + pricing |
+
+**Rule of thumb:** stack a cheap string metric with `llm_judge` so you always have a fast sanity-check signal alongside the expensive semantic one. For retrieval work, `recall@k` and `mrr` together tell you coverage *and* ranking quality.
+
+## Writing new metrics
+
 ragharness has two metric kinds, and they plug in through two different registries in [ragharness/metrics/__init__.py](../ragharness/metrics/__init__.py).
 
 | Kind | Signature | Called | Example |

@@ -149,11 +149,11 @@ def _resolve_metrics(
             name = next(iter(entry))
             params = entry[name]
 
-        if name in PER_QUESTION_REGISTRY or name == "llm_judge":
-            if name == "precision_at_k" and params:
-                pq_metrics[name] = partial(get_per_question_metric(name), **params)
-            else:
-                pq_metrics[name] = get_per_question_metric(name, **params)
+        if name in ("llm_judge", "llm_faithfulness"):
+            pq_metrics[name] = get_per_question_metric(name, **params)
+        elif name in PER_QUESTION_REGISTRY:
+            fn = get_per_question_metric(name)
+            pq_metrics[name] = partial(fn, **params) if params else fn
         elif name in AGGREGATE_REGISTRY:
             fn = get_aggregate_metric(name)
             if params:

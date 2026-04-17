@@ -1,0 +1,50 @@
+# ragharness retrieval-quality example configuration
+#
+# Demonstrates the retrieval metric pack — precision@k, recall@k,
+# hit_rate@k, MRR, nDCG@k — across a top_k sweep. The resulting CSV
+# gives the classic retrieval-ablation shape: rows = configs, columns =
+# metrics, so you can see which retrieval knob moves which metric.
+#
+# Usage:
+#   ragharness validate examples/retrieval_quality_config.yaml
+#   ragharness run examples/retrieval_quality_config.yaml --dry-run
+#   ragharness run examples/retrieval_quality_config.yaml --no-confirm
+
+# ── Dataset ──────────────────────────────────────────────
+dataset:
+  source: jsonl
+  path: ./examples/sample_dataset.jsonl
+
+# ── RAG System ───────────────────────────────────────────
+system:
+  adapter: raw
+  adapter_config:
+    llm_provider: anthropic
+    llm_model: claude-sonnet-4-20250514
+
+# ── Sweep ────────────────────────────────────────────────
+# Vary top_k so the retrieval metrics have something meaningful to
+# compare across configs.
+sweep:
+  top_k: [1, 3, 5, 10]
+
+# ── Metrics ──────────────────────────────────────────────
+# All five retrieval metrics with a fixed scoring k. Keep it consistent
+# across the sweep so columns are comparable row-to-row.
+metrics:
+  - precision_at_k:
+      k: 5
+  - recall_at_k:
+      k: 5
+  - hit_rate_at_k:
+      k: 5
+  - mrr                   # MRR has no k cap; uses the full ranked list
+  - ndcg_at_k:
+      k: 5
+  - latency_p50
+  - latency_p95
+
+# ── Output ───────────────────────────────────────────────
+output:
+  csv: ./results/retrieval_quality.csv
+  charts: ./results/retrieval_quality_charts/

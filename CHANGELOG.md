@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-16
+
+### Added
+- **Retrieval metric pack**: `recall_at_k`, `hit_rate_at_k`, `mrr`, and `ndcg_at_k` — standard IR metrics that sit alongside the existing `precision_at_k`. All pure-Python, zero new dependencies.
+- **Answer-quality metric pack**: `contains` (substring), `f1_token` (SQuAD-style token F1), and `rouge_l` (LCS-based F-measure) bridge the gap between the strict `exact_match` and the expensive `llm_judge`.
+- `llm_faithfulness` — LLM-based hallucination-detection judge that scores how well the system answer is grounded in `result.retrieved_docs` (as opposed to `llm_judge`, which scores correctness against `expected_answer`).
+- `examples/answer_quality_config.yaml` and `examples/retrieval_quality_config.yaml` demonstrating the new metric packs.
+- "Choosing a metric" decision table in [docs/writing_metrics.md](docs/writing_metrics.md).
+
+### Changed
+- `LLMJudge` now inherits from an internal `_LLMScorer` base class that holds the provider/client/parse-score plumbing; `LLMJudge`'s public signature is unchanged. `LLMFaithfulness` is a sibling subclass sharing the same machinery.
+- `orchestrator._resolve_metrics` now wraps *any* parameterised per-question metric with `functools.partial` (previously only `precision_at_k` had the wrap; other parameterised metrics would have raised). LLM-based judges are still constructed with kwargs via the special-cased lazy path.
+
 ## [0.2.0] - 2026-04-16
 
 ### Added
@@ -37,6 +50,7 @@ Initial public release.
 - Auth helper with `.env` loading and user-friendly `MissingAPIKeyError`.
 - Strict mypy, ruff, and a pytest suite with adapter/metric/reporter/config coverage.
 
-[Unreleased]: https://github.com/DennisKoshta/ragharness/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/DennisKoshta/ragharness/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/DennisKoshta/ragharness/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/DennisKoshta/ragharness/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/DennisKoshta/ragharness/releases/tag/v0.1.0

@@ -1,0 +1,45 @@
+# ragharness answer-quality example configuration
+#
+# Walks through the full spectrum of answer-quality metrics, from the
+# strictest (exact_match) to the most expensive (llm_judge /
+# llm_faithfulness). Useful for picking which metric(s) your task
+# actually needs — see docs/writing_metrics.md for the decision tree.
+#
+# Usage:
+#   ragharness validate examples/answer_quality_config.yaml
+#   ragharness run examples/answer_quality_config.yaml --dry-run
+#   ragharness run examples/answer_quality_config.yaml --no-confirm
+
+# ── Dataset ──────────────────────────────────────────────
+dataset:
+  source: jsonl
+  path: ./examples/sample_dataset.jsonl
+
+# ── RAG System ───────────────────────────────────────────
+system:
+  adapter: raw
+  adapter_config:
+    llm_provider: anthropic
+    llm_model: claude-sonnet-4-20250514
+
+# ── Metrics ──────────────────────────────────────────────
+# Cheap string metrics first; LLM-based judges last (they cost tokens).
+metrics:
+  - exact_match          # strictest — case/whitespace-normalised equality
+  - contains             # did the expected answer appear as a substring?
+  - f1_token             # SQuAD-style token F1 — best for span-QA
+  - rouge_l              # LCS-based F-measure — best for longer answers
+  - llm_judge            # LLM rates correctness 0–1 (needs API key)
+  - llm_faithfulness     # LLM rates grounding in retrieved_docs
+  - latency_p50
+  - latency_p95
+  - token_cost:
+      pricing:
+        claude-sonnet-4-20250514:
+          input_per_1k: 0.003
+          output_per_1k: 0.015
+
+# ── Output ───────────────────────────────────────────────
+output:
+  csv: ./results/answer_quality.csv
+  charts: ./results/answer_quality_charts/

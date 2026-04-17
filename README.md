@@ -162,8 +162,16 @@ No inheritance required. Any object with a conforming `query` method works.
 | Metric | Type | Description |
 |---|---|---|
 | `exact_match` | Per-question | 1.0 if answer matches expected (case-insensitive) |
+| `contains` | Per-question | 1.0 if expected answer appears as a substring of the answer |
+| `f1_token` | Per-question | SQuAD-style token F1 between answer and expected |
+| `rouge_l` | Per-question | ROUGE-L F-measure based on longest common subsequence |
 | `llm_judge` | Per-question | LLM scores correctness 0.0-1.0 |
+| `llm_faithfulness` | Per-question | LLM scores how grounded the answer is in retrieved docs |
 | `precision_at_k` | Per-question | Fraction of retrieved docs in expected set |
+| `recall_at_k` | Per-question | Fraction of expected docs found in top-k retrieved |
+| `hit_rate_at_k` | Per-question | 1.0 if any expected doc appears in top-k |
+| `mrr` | Per-question | Reciprocal rank of the first retrieved doc that hits |
+| `ndcg_at_k` | Per-question | Binary-relevance nDCG over the top-k retrieved |
 | `latency_p50` | Aggregate | Median query latency |
 | `latency_p95` | Aggregate | 95th percentile query latency |
 | `token_cost` | Aggregate | Total estimated cost from token counts |

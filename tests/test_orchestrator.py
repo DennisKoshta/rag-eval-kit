@@ -168,6 +168,38 @@ def test_run_sweep_hf_source(monkeypatch, _patch_adapter):
     assert len(result.runs[0].per_question_scores) == 3
 
 
+def test_run_sweep_parameterised_non_llm_metric_is_wrapped(tmp_path, monkeypatch):
+    """A parameterised per-question metric (e.g. recall_at_k with k=3) must be
+    wrapped with functools.partial — not passed params as kwargs that its
+    callable signature wouldn't accept."""
+    from tests.conftest import DummyRAGSystem
+
+    # Adapter that returns a fixed retrieved_docs list so recall_at_k has
+    # something to measure.
+    def _factory(adapter_type, adapter_config, sweep_overrides=None):
+        return DummyRAGSystem(answer="42", docs=["a", "b", "c", "d"])
+
+    monkeypatch.setattr("ragharness.orchestrator.create_adapter", _factory)
+
+    ds_path = tmp_path / "ds.jsonl"
+    ds_path.write_text(
+        json.dumps(
+            {
+                "question": "Q1",
+                "expected_answer": "42",
+                "expected_docs": ["a", "b"],
+            }
+        )
+    )
+
+    # k=3 caps the window — both expected docs are in the first 3, recall=1.0
+    cfg = _make_config(str(ds_path), metrics=[{"recall_at_k": {"k": 3}}])
+    result = run_sweep(cfg, no_confirm=True)
+
+    assert result.runs[0].per_question_scores[0]["recall_at_k"] == 1.0
+    assert result.runs[0].aggregate_scores["mean_recall_at_k"] == 1.0
+
+
 def test_run_sweep_aggregate_latency(tmp_path, _patch_adapter):
     """Latency metrics should be populated from metadata."""
     ds_path = tmp_path / "ds.jsonl"
